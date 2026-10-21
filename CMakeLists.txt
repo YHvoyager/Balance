@@ -38,7 +38,9 @@ add_executable(${CMAKE_PROJECT_NAME}
     Core/Src/PID.c
     Core/Inc/PID.h
     Core/Inc/APP_MPU6050.h
-    Core/Inc/task.h)
+    Core/Inc/task.h
+    Core/Src/KEY.c
+    Core/Inc/KEY.h)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -51,10 +53,12 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP_Control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/oled.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/font.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP_MPU6050.c 
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Vofa.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ESP01S.c
 )
 
 # Add include paths

@@ -24,16 +24,15 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "APP_MPU6050.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Control.h"
-#include "ESP01S.h"
-#include "Vofa.h"           /* ★ 上行遥测(Vofa_Send) + 下行命令解析(Vofa_GetLine) */
+#include "APP_Control.h"
+#include "APP_MPU6050.h"
 #include "oled.h"
 #include <string.h>
 #include <stdio.h>
+#include <KEY.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +53,20 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+void FloatToStr(char *out, float v)
+{
+  if (v < 0) { *out++ = '-'; v = -v; }   // 处理负号
+  int whole = (int)v;                     // 整数部分
+  int frac = (int)((v - whole) * 100.0f + 0.5f); // 四舍五入保留2位小数
+  if (frac >= 100) { whole++; frac -= 100; }     // 进位
+  sprintf(out, "%d.%02d", whole, frac);   // %d 不依赖浮点printf
+}
 
+#include "KEY.h"
+
+KEY_HandleTypeDef key1;
+KEY_HandleTypeDef key2;
+KEY_HandleTypeDef key3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,10 +118,22 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
+  Motor_Init();
   MPU6050_Init();
   
   HAL_Delay(1000); //等待MPU6050稳定
   OLED_Init();
+
+  char display_str[20];
+
+
+
+  KEY_Init(&key2, KEY2_GPIO_Port, KEY2_Pin, GPIO_PIN_RESET);
+  KEY_Init(&key3, KEY3_GPIO_Port, KEY3_Pin, GPIO_PIN_RESET);
+
+  // Forward(10, 10);
+  // HAL_Delay(50);
+  // Forward(50, 50);
 
   /* USER CODE END 2 */
 
@@ -117,7 +141,34 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    MPU6050_P
+    KEY_Update(&key2);
+    KEY_Update(&key3);
+    if(KEY_WasPressed(&key2)){
+      //按一次右轮电机占空比加10%
+      ForwardDuty_R(Get_Duty('R') - 10.0f);
+      //清零last_pressed,清零pressed
+      key2.last_pressed = 0;
+      key2.pressed = 0;
+    }
+    if(KEY_WasPressed(&key3)){
+      //按一次左轮电机占空比加10%
+      ForwardDuty_L(Get_Duty('L') - 10.0f);
+      //清零last_pressed,清零pressed
+      key3.last_pressed = 0;
+      key3.pressed = 0;
+    }
+    MPU6050_Proc();
+    OLED_NewFrame();
+  char display_str[128];
+  // 显示占空比
+  sprintf(display_str,
+        "L:%d%% R:%d%%",
+        (int)(Get_Duty('L') + 0.5f),
+        (int)(Get_Duty('R') + 0.5f));
+  OLED_PrintString(0, 0, display_str, &font16x16, OLED_COLOR_NORMAL);
+
+  OLED_ShowFrame();
+    
 
     /* USER CODE END WHILE */
 
@@ -173,7 +224,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == KEY1_Pin)
+    {
+        KEY_EXTI_Callback(&key1);
+    }
+    else if (GPIO_Pin == KEY2_Pin)
+    {
+        KEY_EXTI_Callback(&key2);
+    }
+    else if (GPIO_Pin == KEY3_Pin)
+    {
+        KEY_EXTI_Callback(&key3);
+    }
+}
 /* USER CODE END 4 */
 
 /**

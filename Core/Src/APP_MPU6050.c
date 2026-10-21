@@ -1,4 +1,4 @@
-#include "mpu6050.h"
+#include "APP_MPU6050.h"
 #include "i2c.h"
 #include "stdio.h"
 #include "task.h"

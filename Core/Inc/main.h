@@ -77,14 +77,17 @@ void Error_Handler(void);
 #define RGB_GREEN_GPIO_Port GPIOB
 #define KEY2_Pin GPIO_PIN_8
 #define KEY2_GPIO_Port GPIOA
+#define KEY2_EXTI_IRQn EXTI9_5_IRQn
 #define ESP01S_TX_Pin GPIO_PIN_9
 #define ESP01S_TX_GPIO_Port GPIOA
 #define ESP01S_RX_Pin GPIO_PIN_10
 #define ESP01S_RX_GPIO_Port GPIOA
 #define KEY3_Pin GPIO_PIN_11
 #define KEY3_GPIO_Port GPIOA
+#define KEY3_EXTI_IRQn EXTI15_10_IRQn
 #define KEY1_Pin GPIO_PIN_12
 #define KEY1_GPIO_Port GPIOA
+#define KEY1_EXTI_IRQn EXTI15_10_IRQn
 #define B_A_Pin GPIO_PIN_6
 #define B_A_GPIO_Port GPIOB
 #define B_B_Pin GPIO_PIN_7
