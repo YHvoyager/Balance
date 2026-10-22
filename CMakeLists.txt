@@ -35,12 +35,16 @@ enable_language(C ASM)
 add_executable(${CMAKE_PROJECT_NAME}
     Core/Src/ESP01S.c
     Core/Inc/ESP01S.h
-    Core/Src/PID.c
-    Core/Inc/PID.h
-    Core/Inc/APP_MPU6050.h
+    Core/Src/APP/PID.c
+    Core/Inc/APP/PID.h
+    Core/Inc/APP/APP_MPU6050.h
     Core/Inc/task.h
     Core/Src/KEY.c
-    Core/Inc/KEY.h)
+    Core/Inc/KEY.h
+    Core/Src/APP/APP_Encoder.c
+    Core/Inc/APP/APP_Encoder.h
+    Core/Inc/test/Encoder_test.h
+    Core/Src/test/Encoder_test.c)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -53,17 +57,20 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP_Control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/APP_Control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/oled.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/font.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP_MPU6050.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Vofa.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/APP_MPU6050.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/Vofa.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ESP01S.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/APP
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/test
 )
 
 # Add project symbols (macros)

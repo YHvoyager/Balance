@@ -1,0 +1,128 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.24.2.0
+Copyright (C) 2017 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 1 8618577572374, 1, LIC=YA39H-W8J0Z-56AQ2-9JZZA-IFF8E-YTIHW
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.24.1
+Toolchain Path:  D:\Keil5 C51\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 5 (build 528)
+Assembler:       Armasm.exe V5.06 update 5 (build 528)
+Linker/Locator:  ArmLink.exe V5.06 update 5 (build 528)
+Library Manager: ArmAr.exe V5.06 update 5 (build 528)
+Hex Converter:   FromElf.exe V5.06 update 5 (build 528)
+CPU DLL:         SARMCM3.DLL V5.24.1
+Dialog DLL:      DCM.DLL V1.16.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.1.0
+Dialog DLL:      TCM.DLL V1.32.0.0
+ 
+<h2>Project:</h2>
+C:\Users\86185\Desktop\Balan\Balance\MDK-ARM\Balance.uvprojx
+Project File Date:  10/22/2026
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'D:\Keil5 C51\ARM\ARMCC\Bin'
+Rebuild target 'Balance'
+assembling startup_stm32f103xb.s...
+compiling adc.c...
+compiling gpio.c...
+compiling i2c.c...
+compiling stm32f1xx_hal.c...
+compiling stm32f1xx_it.c...
+../Core/Inc/ESP01S.h(65): warning:  #1-D: last line of file ends without a newline
+  #endif /* ESP01S_H */
+../Core/Src/stm32f1xx_it.c: 1 warning, 0 errors
+compiling stm32f1xx_hal_gpio_ex.c...
+compiling dma.c...
+compiling stm32f1xx_hal_msp.c...
+compiling main.c...
+../Core/Inc/APP_Control.h(39): warning:  #1-D: last line of file ends without a newline
+  #endif /* APP_CONTROL_H */
+../Core/Inc/APP_MPU6050.h(24): warning:  #1-D: last line of file ends without a newline
+  #endif
+../Core/Inc/oled.h(13): warning:  #1295-D: Deprecated declaration OLED_Init - give arg types
+  void OLED_Init();
+../Core/Inc/oled.h(14): warning:  #1295-D: Deprecated declaration OLED_DisPlay_On - give arg types
+  void OLED_DisPlay_On();
+../Core/Inc/oled.h(15): warning:  #1295-D: Deprecated declaration OLED_DisPlay_Off - give arg types
+  void OLED_DisPlay_Off();
+../Core/Inc/oled.h(17): warning:  #1295-D: Deprecated declaration OLED_NewFrame - give arg types
+  void OLED_NewFrame();
+../Core/Inc/oled.h(18): warning:  #1295-D: Deprecated declaration OLED_ShowFrame - give arg types
+  void OLED_ShowFrame();
+../Core/Inc/oled.h(35): warning:  #1-D: last line of file ends without a newline
+  #endif // __OLED_H__
+../Core/Inc/KEY.h(29): warning:  #1-D: last line of file ends without a newline
+  #endif
+../Core/Src/main.c(127): warning:  #177-D: variable "display_str"  was declared but never referenced
+    char display_str[20];
+../Core/Src/main.c: 10 warnings, 0 errors
+compiling usart.c...
+compiling stm32f1xx_hal_adc_ex.c...
+compiling tim.c...
+compiling stm32f1xx_hal_rcc_ex.c...
+compiling stm32f1xx_hal_adc.c...
+compiling stm32f1xx_hal_rcc.c...
+compiling stm32f1xx_hal_gpio.c...
+compiling stm32f1xx_hal_cortex.c...
+compiling stm32f1xx_hal_dma.c...
+compiling stm32f1xx_hal_pwr.c...
+compiling stm32f1xx_hal_exti.c...
+compiling stm32f1xx_hal_flash.c...
+compiling stm32f1xx_hal_flash_ex.c...
+compiling system_stm32f1xx.c...
+compiling stm32f1xx_hal_uart.c...
+compiling stm32f1xx_hal_tim_ex.c...
+compiling stm32f1xx_hal_i2c.c...
+compiling stm32f1xx_hal_tim.c...
+linking...
+Balance\Balance.axf: Error: L6218E: Undefined symbol ForwardDuty_L (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol ForwardDuty_R (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol Get_Duty (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol KEY_EXTI_Callback (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol KEY_Init (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol KEY_Update (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol KEY_WasPressed (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol MPU6050_Init (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol MPU6050_Proc (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol Motor_Init (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol OLED_Init (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol OLED_NewFrame (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol OLED_PrintString (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol OLED_ShowFrame (referred from main.o).
+Balance\Balance.axf: Error: L6218E: Undefined symbol font16x16 (referred from main.o).
+Not enough information to list image symbols.
+Not enough information to list load addresses in the image map.
+Finished: 2 information, 0 warning and 15 error messages.
+"Balance\Balance.axf" - 15 Error(s), 11 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.0.1.pack
+                ARM.CMSIS.5.0.1
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.0.1
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F1xx_DFP.2.2.0.pack
+                Keil.STM32F1xx_DFP.2.2.0
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_Balance
+  D:\Keil5 C51\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include
+  D:\Keil5 C51\ARM\PACK\Keil\STM32F1xx_DFP\2.2.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.0.1
+Target not created.
+Build Time Elapsed:  00:00:08
+</pre>
+</body>
+</html>

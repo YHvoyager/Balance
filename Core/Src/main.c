@@ -33,6 +33,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <KEY.h>
+#include "APP_Encoder.h"
+#include "Encoder_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,9 +114,7 @@ int main(void)
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
   MX_USART1_UART_Init();
-  MX_TIM4_Init();
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
@@ -126,10 +126,11 @@ int main(void)
 
   char display_str[20];
 
-
-
   KEY_Init(&key2, KEY2_GPIO_Port, KEY2_Pin, GPIO_PIN_RESET);
   KEY_Init(&key3, KEY3_GPIO_Port, KEY3_Pin, GPIO_PIN_RESET);
+
+  Encoder_Test();
+  char buffer[100];
 
   // Forward(10, 10);
   // HAL_Delay(50);
@@ -158,16 +159,24 @@ int main(void)
       key3.pressed = 0;
     }
     MPU6050_Proc();
-    OLED_NewFrame();
-  char display_str[128];
-  // 显示占空比
-  sprintf(display_str,
-        "L:%d%% R:%d%%",
-        (int)(Get_Duty('L') + 0.5f),
-        (int)(Get_Duty('R') + 0.5f));
-  OLED_PrintString(0, 0, display_str, &font16x16, OLED_COLOR_NORMAL);
+    // OLED_NewFrame();
+  // char display_str[128];
+  // // 显示占空比
+  // sprintf(display_str,
+  //       "L:%d%% R:%d%%",
+  //       (int)(Get_Duty('L') + 0.5f),
+  //       (int)(Get_Duty('R') + 0.5f));
+  // OLED_PrintString(0, 0, display_str, &font16x16, OLED_COLOR_NORMAL);
 
-  OLED_ShowFrame();
+  OLED_NewFrame();
+    sprintf(buffer, "L: %ld", (long)Encoder_L.period_ticks);
+    OLED_PrintString(0,0,buffer,&font16x16, OLED_COLOR_NORMAL);
+    sprintf(buffer, "R: %ld", (long)Encoder_R.period_ticks);
+    OLED_PrintString(0,16,buffer,&font16x16, OLED_COLOR_NORMAL);
+
+    OLED_ShowFrame();
+
+  // OLED_ShowFrame();
     
 
     /* USER CODE END WHILE */
@@ -237,6 +246,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     else if (GPIO_Pin == KEY3_Pin)
     {
         KEY_EXTI_Callback(&key3);
+    }
+    else if (GPIO_Pin ==  A_B_Pin)
+    {
+        Encoder_EXTI_IRQHandler(&Motor_R);
+    }
+    else if (GPIO_Pin == B_A_Pin)
+    {
+        Encoder_EXTI_IRQHandler(&Motor_L);
     }
 }
 /* USER CODE END 4 */

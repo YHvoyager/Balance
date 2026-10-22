@@ -69,6 +69,7 @@ void Error_Handler(void);
 #define A_A_GPIO_Port GPIOA
 #define A_B_Pin GPIO_PIN_7
 #define A_B_GPIO_Port GPIOA
+#define A_B_EXTI_IRQn EXTI9_5_IRQn
 #define RGB_BLUE_Pin GPIO_PIN_12
 #define RGB_BLUE_GPIO_Port GPIOB
 #define RGB_RED_Pin GPIO_PIN_13
@@ -90,6 +91,7 @@ void Error_Handler(void);
 #define KEY1_EXTI_IRQn EXTI15_10_IRQn
 #define B_A_Pin GPIO_PIN_6
 #define B_A_GPIO_Port GPIOB
+#define B_A_EXTI_IRQn EXTI9_5_IRQn
 #define B_B_Pin GPIO_PIN_7
 #define B_B_GPIO_Port GPIOB
 

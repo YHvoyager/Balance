@@ -52,6 +52,18 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RGB_BLUE_Pin|RGB_RED_Pin|RGB_GREEN_Pin|GPIO_PIN_15, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : A_A_Pin */
+  GPIO_InitStruct.Pin = A_A_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(A_A_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : A_B_Pin */
+  GPIO_InitStruct.Pin = A_B_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(A_B_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : RGB_BLUE_Pin RGB_RED_Pin RGB_GREEN_Pin PB15 */
   GPIO_InitStruct.Pin = RGB_BLUE_Pin|RGB_RED_Pin|RGB_GREEN_Pin|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -64,6 +76,18 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : B_A_Pin */
+  GPIO_InitStruct.Pin = B_A_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B_A_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : B_B_Pin */
+  GPIO_InitStruct.Pin = B_B_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B_B_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
