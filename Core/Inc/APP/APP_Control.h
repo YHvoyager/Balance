@@ -2,6 +2,7 @@
 #define APP_CONTROL_H
 
 #include <stdint.h>
+#include "KEY.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,10 @@ void Back(uint16_t L_duty, uint16_t R_duty);
 
 // 获取轮子占空比，0～100%
 float Get_Duty(char Wheel);
+
+// 电机测试
+void Motor_Test(KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3);
+
 #ifdef __cplusplus
 }
 #endif

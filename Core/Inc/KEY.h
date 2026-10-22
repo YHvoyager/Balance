@@ -16,6 +16,11 @@ typedef struct
     uint8_t last_pressed;
 } KEY_HandleTypeDef;
 
+// 全局按键实例（定义在 KEY.c）
+extern KEY_HandleTypeDef key1;
+extern KEY_HandleTypeDef key2;
+extern KEY_HandleTypeDef key3;
+
 void KEY_Init(KEY_HandleTypeDef *key,
               GPIO_TypeDef *port,
               uint16_t pin,
@@ -25,5 +30,6 @@ void KEY_EXTI_Callback(KEY_HandleTypeDef *key);
 void KEY_Update(KEY_HandleTypeDef *key);
 uint8_t KEY_WasPressed(KEY_HandleTypeDef *key);
 uint8_t KEY_IsPressed(KEY_HandleTypeDef *key);
+void KEY_AllInit(void);
 
 #endif

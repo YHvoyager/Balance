@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <KEY.h>
 #include "APP_Encoder.h"
-#include "Encoder_test.h"
+#include "printf.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,15 +64,12 @@ void FloatToStr(char *out, float v)
   sprintf(out, "%d.%02d", whole, frac);   // %d 不依赖浮点printf
 }
 
-#include "KEY.h"
-
-KEY_HandleTypeDef key1;
-KEY_HandleTypeDef key2;
-KEY_HandleTypeDef key3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -110,6 +107,8 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  DWT_Init();
+
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
@@ -121,16 +120,15 @@ int main(void)
   Motor_Init();
   MPU6050_Init();
   
-  HAL_Delay(1000); //等待MPU6050稳定
+  HAL_Delay(100); //等待MPU6050稳定
   OLED_Init();
 
   char display_str[20];
 
-  KEY_Init(&key2, KEY2_GPIO_Port, KEY2_Pin, GPIO_PIN_RESET);
-  KEY_Init(&key3, KEY3_GPIO_Port, KEY3_Pin, GPIO_PIN_RESET);
+  KEY_AllInit();
 
-  Encoder_Test();
-  char buffer[100];
+  Encoder_Count_Init();
+
 
   // Forward(10, 10);
   // HAL_Delay(50);
@@ -142,22 +140,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    KEY_Update(&key2);
-    KEY_Update(&key3);
-    if(KEY_WasPressed(&key2)){
-      //按一次右轮电机占空比加10%
-      ForwardDuty_R(Get_Duty('R') - 10.0f);
-      //清零last_pressed,清零pressed
-      key2.last_pressed = 0;
-      key2.pressed = 0;
-    }
-    if(KEY_WasPressed(&key3)){
-      //按一次左轮电机占空比加10%
-      ForwardDuty_L(Get_Duty('L') - 10.0f);
-      //清零last_pressed,清零pressed
-      key3.last_pressed = 0;
-      key3.pressed = 0;
-    }
+    Motor_Test(&key2, &key3);
     MPU6050_Proc();
     // OLED_NewFrame();
   // char display_str[128];
@@ -168,13 +151,31 @@ int main(void)
   //       (int)(Get_Duty('R') + 0.5f));
   // OLED_PrintString(0, 0, display_str, &font16x16, OLED_COLOR_NORMAL);
 
-  OLED_NewFrame();
-    sprintf(buffer, "L: %ld", (long)Encoder_L.period_ticks);
-    OLED_PrintString(0,0,buffer,&font16x16, OLED_COLOR_NORMAL);
-    sprintf(buffer, "R: %ld", (long)Encoder_R.period_ticks);
-    OLED_PrintString(0,16,buffer,&font16x16, OLED_COLOR_NORMAL);
+    // OLED_NewFrame();
+    char speed_str[20];
 
-    OLED_ShowFrame();
+    // FloatToStr(speed_str, EncoderGetSpeed_L());
+    // sprintf(speed_str, "%s", speed_str);
+    // OLED_PrintString(0, 0, speed_str, &font16x16, OLED_COLOR_NORMAL);
+
+    // FloatToStr(speed_str, EncoderGetSpeed_R());
+    // sprintf(speed_str, "%s", speed_str);
+    // OLED_PrintString(0, 16, speed_str, &font16x16, OLED_COLOR_NORMAL);
+
+    // 发送速度到 VOFA+（FireWater：一行 = 一帧，逗号分通道，\n 结尾）
+    // 用 FloatToStr 自己转字符串，不依赖 printf 的浮点支持（newlib-nano 默认没有 %f）
+    char vofa_l[12], vofa_r[12];
+    FloatToStr(vofa_l, EncoderGetSpeed_L());
+    FloatToStr(vofa_r, EncoderGetSpeed_R());
+    printf("%s,%s\n", vofa_l, vofa_r);
+
+    // //显示编码器计数
+    // sprintf(display_str, "L: %ld ", (long)Encoder_L.period_ticks);
+    // OLED_PrintString(0,32,display_str,&font16x16, OLED_COLOR_NORMAL);
+    // sprintf(display_str, "R: %ld", (long)Encoder_R.period_ticks);
+    // OLED_PrintString(0,48,display_str,&font16x16, OLED_COLOR_NORMAL);
+
+    // OLED_ShowFrame();
 
   // OLED_ShowFrame();
     

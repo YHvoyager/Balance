@@ -8,7 +8,8 @@
 // @简介: 编码器
 //
 typedef struct {
-    volatile uint32_t last_capture;
+    volatile uint32_t t0;
+    volatile uint32_t t1;
     volatile int32_t period_ticks;
     //port和pin
     GPIO_TypeDef *Port;
@@ -27,5 +28,19 @@ typedef struct {
 
 void Encoder_Init(Encoder_t *encoder, GPIO_TypeDef *port, uint16_t pin);
 void Encoder_EXTI_IRQHandler(Motor_t *motor);
+
+// 全局编码器/电机实例（定义在 APP_Encoder.c）
+extern Encoder_t Encoder_L;
+extern Encoder_t Encoder_R;
+extern Motor_t Motor_L;
+extern Motor_t Motor_R;
+
+void Encoder_Count_Init(void);
+float EncoderGetSpeed_L(void);
+float EncoderGetSpeed_R(void);
+
+// APP_Encoder.h
+void DWT_Init(void);
+uint32_t micros(void);
 
 #endif /* __APP_ENCODER_H__ */

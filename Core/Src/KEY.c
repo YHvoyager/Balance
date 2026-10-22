@@ -1,5 +1,9 @@
 #include "KEY.h"
 
+KEY_HandleTypeDef key1;
+KEY_HandleTypeDef key2;
+KEY_HandleTypeDef key3;
+
 void KEY_Init(KEY_HandleTypeDef* key,
     GPIO_TypeDef* GPIO_Port,
     uint16_t pin,
@@ -54,3 +58,8 @@ uint8_t KEY_IsPressed(KEY_HandleTypeDef* key)
         return key->pressed;
     }
 
+    void KEY_AllInit(void){
+    KEY_Init(&key1, KEY1_GPIO_Port, KEY1_Pin, GPIO_PIN_RESET);
+    KEY_Init(&key2, KEY2_GPIO_Port, KEY2_Pin, GPIO_PIN_RESET);
+    KEY_Init(&key3, KEY3_GPIO_Port, KEY3_Pin, GPIO_PIN_RESET);
+    }

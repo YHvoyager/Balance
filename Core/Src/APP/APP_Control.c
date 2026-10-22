@@ -3,6 +3,7 @@
 #include "tim.h"
 #include <stdint.h>
 #include "APP_Control.h"
+#include "KEY.h"
 
 // TIM2：向上计数、PWM mode 1、高电平有效
 // 默认不重映射：
@@ -158,4 +159,27 @@ float Get_Duty(char Wheel)
 
     // 由于硬件使用 100-duty，显示时反算
     return (1.0f - pwm_duty) * 100.0f;
+}
+
+//
+// @简介:电机测试
+// 参数:KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3
+void Motor_Test(KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3)
+{
+    KEY_Update(key2);
+    KEY_Update(key3);
+    if(KEY_WasPressed(key2)){
+      //按一次右轮电机占空比加10%
+      ForwardDuty_R(Get_Duty('R') - 10.0f);
+      //清零last_pressed,清零pressed
+      key2->last_pressed = 0;
+      key2->pressed = 0;
+    }
+    if(KEY_WasPressed(key3)){
+      //按一次左轮电机占空比加10%
+      ForwardDuty_L(Get_Duty('L') - 10.0f);
+      //清零last_pressed,清零pressed
+      key3->last_pressed = 0;
+      key3->pressed = 0;
+    }
 }
