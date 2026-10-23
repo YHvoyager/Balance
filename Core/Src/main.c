@@ -35,6 +35,7 @@
 #include <KEY.h>
 #include "APP_Encoder.h"
 #include "printf.h"
+#include "Vofa.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -140,6 +141,8 @@ int main(void)
   {
     Motor_Test(&key2, &key3);
     MPU6050_Proc();
+    float data[3] = {pitch, roll, yaw};
+  Vofa_Send(NULL, data, 3, 2);
     // OLED_NewFrame();
   // char display_str[128];
   // // 显示占空比
