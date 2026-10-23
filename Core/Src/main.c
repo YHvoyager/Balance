@@ -68,8 +68,6 @@ void FloatToStr(char *out, float v)
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,8 +105,6 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  DWT_Init();
-
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
@@ -116,6 +112,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   MX_ADC1_Init();
+  MX_TIM1_Init();
+  Timer1_StartUs();
   /* USER CODE BEGIN 2 */
   Motor_Init();
   MPU6050_Init();

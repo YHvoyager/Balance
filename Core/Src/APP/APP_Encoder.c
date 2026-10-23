@@ -1,4 +1,5 @@
 #include "APP_Encoder.h"
+#include "tim.h"
 
 //减速比为1:20.409,轮子直径48mm，线数为13
 static const float Wheel_Diameter = 48.0f;
@@ -100,35 +101,58 @@ void Encoder_Count_Init(void){
 }
 
 float EncoderGetSpeed_L(void){
-    float T;
-    uint64_t now = micros();
-    if(Motor_L.Application == -2 || Motor_L.Application == 2){
+    //关闭中断
+    __disable_irq();
+    //拷贝数据
+    uint32_t t0 = Encoder_L.t0;
+    uint32_t t1 = Encoder_L.t1;
+    int8_t direction = Motor_L.Application;
+
+    //开启中断
+    __enable_irq();
+
+    if(direction == -2 || direction == 2){
         return 0.0f;
     }
-    if((Encoder_L.t0 - Encoder_L.t1) < (now - Encoder_L.t0)){
-        T = (now - Encoder_L.t0) * 1.0e-6f;
-    }
-    if((Encoder_L.t0 - Encoder_L.t1) > (now - Encoder_L.t0)){
-        T = (Encoder_L.t0 - Encoder_L.t1) * 1.0e-6f;
+    uint32_t now = micros();
+    uint32_t period = t0 - t1;  /* unsigned subtraction handles timer wrap */
+    uint32_t elapsed = now - t0;
+    uint32_t dt = (period > elapsed) ? period : elapsed;
+
+    if (period == 0u || dt == 0u) {
+        return 0.0f;
     }
 
-    return Motor_L.Application / T / Encoder_Line / Encoder_Ratio * 360.0f;
+    float T = dt * 1.0e-6f;
+
+    return direction / T / Encoder_Line / Encoder_Ratio * 360.0f;
 }
 
 float EncoderGetSpeed_R(void){
-    float T;
-    uint64_t now = micros();
-    if(Motor_R.Application == -2 || Motor_R.Application == 2){
+    //关闭中断
+    __disable_irq();
+    //拷贝数据
+    uint32_t t0 = Encoder_R.t0;
+    uint32_t t1 = Encoder_R.t1;
+    int8_t direction = Motor_R.Application;
+    //开启中断
+    __enable_irq();
+
+    if(direction == -2 || direction == 2){
         return 0.0f;
     }
-    if((Encoder_R.t0 - Encoder_R.t1) < (now - Encoder_R.t0)){
-        T = (now - Encoder_R.t0) * 1.0e-6f;
-    }
-    if((Encoder_R.t0 - Encoder_R.t1) > (now - Encoder_R.t0)){
-        T = (Encoder_R.t0 - Encoder_R.t1) * 1.0e-6f;
+    uint32_t now = micros();
+    uint32_t period = t0 - t1;
+    uint32_t elapsed = now - t0;
+    uint32_t dt = (period > elapsed) ? period : elapsed;
+
+    if (period == 0u || dt == 0u) {
+        return 0.0f;
     }
 
-    return Motor_R.Application / T / Encoder_Line / Encoder_Ratio * 360.0f;
+    float T = dt * 1.0e-6f;
+
+    return direction / T / Encoder_Line / Encoder_Ratio * 360.0f;
 }
 
 void DWT_Init(void)
@@ -140,6 +164,5 @@ void DWT_Init(void)
 
 uint32_t micros(void)
 {
-    return DWT->CYCCNT /
-           (SystemCoreClock / 1000000U);
+    return Timer1_GetUs();
 }
