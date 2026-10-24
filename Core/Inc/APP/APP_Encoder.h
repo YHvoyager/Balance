@@ -35,12 +35,13 @@ extern Encoder_t Encoder_R;
 extern Motor_t Motor_L;
 extern Motor_t Motor_R;
 
-void Encoder_Count_Init(void);
+void APP_Encoder_Init(void);
 float EncoderGetSpeed_L(void);
 float EncoderGetSpeed_R(void);
 
 // APP_Encoder.h
 void DWT_Init(void);
 uint32_t micros(void);
+uint32_t Timer1_GetUs(void);
 
 #endif /* __APP_ENCODER_H__ */

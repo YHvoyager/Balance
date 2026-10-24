@@ -1,6 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_4
-ADC1.IPParameters=Rank-0\#ChannelRegularConversion,master,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,NbrOfConversionFlag
+ADC1.IPParameters=Rank-0\#ChannelRegularConversion,master,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,NbrOfConversionFlag,NbrOfConversion
+ADC1.NbrOfConversion=1
 ADC1.NbrOfConversionFlag=1
 ADC1.Rank-0\#ChannelRegularConversion=1
 ADC1.SamplingTime-0\#ChannelRegularConversion=ADC_SAMPLETIME_1CYCLE_5
@@ -231,7 +232,7 @@ ProjectManager.ToolChainLocation=
 ProjectManager.UAScriptAfterPath=
 ProjectManager.UAScriptBeforePath=
 ProjectManager.UnderRoot=false
-ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_DMA_Init-DMA-false-HAL-true,4-MX_I2C1_Init-I2C1-false-HAL-true,5-MX_TIM2_Init-TIM2-false-HAL-true,6-MX_USART1_UART_Init-USART1-false-HAL-true,7-MX_USART3_UART_Init-USART3-false-HAL-true,8-MX_ADC1_Init-ADC1-false-HAL-true
+ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_DMA_Init-DMA-false-HAL-true,4-MX_I2C1_Init-I2C1-false-HAL-true,5-MX_TIM2_Init-TIM2-false-HAL-true,6-MX_USART1_UART_Init-USART1-false-HAL-true,7-MX_USART3_UART_Init-USART3-false-HAL-true,8-MX_ADC1_Init-ADC1-false-HAL-true,9-MX_TIM1_Init-TIM1-false-HAL-true
 RCC.ADCFreqValue=12000000
 RCC.ADCPresc=RCC_ADCPCLK2_DIV6
 RCC.AHBFreq_Value=72000000

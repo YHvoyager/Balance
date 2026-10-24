@@ -84,7 +84,7 @@ void Encoder_EXTI_IRQHandler(Motor_t *motor){
 
 
 
-void Encoder_Count_Init(void){
+void APP_Encoder_Init(void){
 
     
     static uint8_t initialized = 0;
@@ -100,6 +100,9 @@ void Encoder_Count_Init(void){
 
 }
 
+//
+// @简介:获取左轮胎旋转的角速度， omega的值，单位为 rad/s
+//
 float EncoderGetSpeed_L(void){
     //关闭中断
     __disable_irq();
@@ -125,9 +128,12 @@ float EncoderGetSpeed_L(void){
 
     float T = dt * 1.0e-6f;
 
-    return direction / T / Encoder_Line / Encoder_Ratio * 360.0f;
+    return direction / T / Encoder_Line / Encoder_Ratio * 6.2831853f;
 }
 
+//
+// @简介:获取右轮胎旋转的角速度， omega的值，单位为 rad/s
+//
 float EncoderGetSpeed_R(void){
     //关闭中断
     __disable_irq();
@@ -152,7 +158,7 @@ float EncoderGetSpeed_R(void){
 
     float T = dt * 1.0e-6f;
 
-    return direction / T / Encoder_Line / Encoder_Ratio * 360.0f;
+    return direction / T / Encoder_Line / Encoder_Ratio * 6.2831853f;
 }
 
 void DWT_Init(void)
@@ -165,4 +171,13 @@ void DWT_Init(void)
 uint32_t micros(void)
 {
     return Timer1_GetUs();
+}
+
+//
+// @简介: 读取TIM1计数器，单位为微秒
+// @注意: TIM1预分频72-1(1us计1次)，周期65535，返回值为16位微秒计数
+//
+uint32_t Timer1_GetUs(void)
+{
+    return __HAL_TIM_GET_COUNTER(&htim1);
 }

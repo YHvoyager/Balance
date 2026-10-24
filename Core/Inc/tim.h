@@ -43,10 +43,6 @@ extern TIM_HandleTypeDef htim2;
 void MX_TIM1_Init(void);
 void MX_TIM2_Init(void);
 
-/* TIM1: 1 MHz free-running timestamp, extended to 32 bits. */
-void     Timer1_StartUs(void);
-uint32_t Timer1_GetUs(void);
-
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */

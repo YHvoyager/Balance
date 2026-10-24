@@ -10,9 +10,9 @@
 // 欧拉角（单位°，供外部读取）
 extern float yaw, pitch, roll;
 
-void MPU6050_Init(void);
+void APP_MPU6050_Init(void);
 void MPU6050_GetData(void);
-void MPU6050_Proc(void);
+void APP_MPU6050_Proc(void);
 float MPU6050_GetAx(void);
 float MPU6050_GetAy(void);
 float MPU6050_GetAz(void);

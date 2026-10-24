@@ -36,6 +36,8 @@
 #include "APP_Encoder.h"
 #include "printf.h"
 #include "Vofa.h"
+#include "APP_Bat.h"
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,6 +65,22 @@ void FloatToStr(char *out, float v)
   int frac = (int)((v - whole) * 100.0f + 0.5f); // 四舍五入保留2位小数
   if (frac >= 100) { whole++; frac -= 100; }     // 进位
   sprintf(out, "%d.%02d", whole, frac);   // %d 不依赖浮点printf
+}
+
+static float tagetOmega = 0.0f;
+
+void SendData_Proc(void){
+    PERIODIC(10); // 每10ms发送一次数据
+
+    float data[1] = {APP_Bat_Get()};
+    Vofa_Send(NULL, data, 1, 2);
+
+    char vofa_l[12], vofa_r[12] , vofa_tagetOmega_l[12] , vofa_tagetOmega_r[12];
+    FloatToStr(vofa_l, EncoderGetSpeed_L());
+    FloatToStr(vofa_r, EncoderGetSpeed_R());
+    FloatToStr(vofa_tagetOmega_l, tagetOmega);
+    FloatToStr(vofa_tagetOmega_r, tagetOmega);
+    printf("%s,%s,%s,%s\n", vofa_l, vofa_r, vofa_tagetOmega_l, vofa_tagetOmega_r);
 }
 
 /* USER CODE END PV */
@@ -114,24 +132,16 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
-  Timer1_StartUs();
   /* USER CODE BEGIN 2 */
-  Motor_Init();
-  MPU6050_Init();
-  
+  APP_Motor_Init();
+  APP_MPU6050_Init();
   HAL_Delay(100); //等待MPU6050稳定
   OLED_Init();
-
   char display_str[20];
-
   KEY_AllInit();
-
-  Encoder_Count_Init();
-
-
-  // Forward(10, 10);
-  // HAL_Delay(50);
-  // Forward(50, 50);
+  APP_Encoder_Init();
+  APP_ADC_Init();
+  APP_PWM_Init();
 
   /* USER CODE END 2 */
 
@@ -139,46 +149,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    Motor_Test(&key2, &key3);
-    MPU6050_Proc();
-    float data[3] = {pitch, roll, yaw};
-  Vofa_Send(NULL, data, 3, 2);
-    // OLED_NewFrame();
-  // char display_str[128];
-  // // 显示占空比
-  // sprintf(display_str,
-  //       "L:%d%% R:%d%%",
-  //       (int)(Get_Duty('L') + 0.5f),
-  //       (int)(Get_Duty('R') + 0.5f));
-  // OLED_PrintString(0, 0, display_str, &font16x16, OLED_COLOR_NORMAL);
+    APP_Bat_Get_Proc();
+    APP_MPU6050_Proc();
+    APP_Motor_Proc();
 
-    // OLED_NewFrame();
-    char speed_str[20];
+    tagetOmega = (HAL_GetTick() % 1000) % 10 * 2;
 
-    // FloatToStr(speed_str, EncoderGetSpeed_L());
-    // sprintf(speed_str, "%s", speed_str);
-    // OLED_PrintString(0, 0, speed_str, &font16x16, OLED_COLOR_NORMAL);
+    APP_Motor_SetOmega_L(tagetOmega);
+    APP_Motor_SetOmega_R(tagetOmega);
 
-    // FloatToStr(speed_str, EncoderGetSpeed_R());
-    // sprintf(speed_str, "%s", speed_str);
-    // OLED_PrintString(0, 16, speed_str, &font16x16, OLED_COLOR_NORMAL);
+    float battery_voltage = APP_Bat_Get();
 
-    // 发送速度到 VOFA+（FireWater：一行 = 一帧，逗号分通道，\n 结尾）
-    // 用 FloatToStr 自己转字符串，不依赖 printf 的浮点支持（newlib-nano 默认没有 %f）
-    char vofa_l[12], vofa_r[12];
-    FloatToStr(vofa_l, EncoderGetSpeed_L());
-    FloatToStr(vofa_r, EncoderGetSpeed_R());
-    printf("%s,%s\n", vofa_l, vofa_r);
+    SendData_Proc();
+    
+    // float data[4] = {pitch, roll, yaw, battery_voltage};
+    // Vofa_Send(NULL, data, 4, 2);
+    // float data[1] = {battery_voltage};
+    // Vofa_Send(NULL, data, 1, 2);
 
-    // //显示编码器计数
-    // sprintf(display_str, "L: %ld ", (long)Encoder_L.period_ticks);
-    // OLED_PrintString(0,32,display_str,&font16x16, OLED_COLOR_NORMAL);
-    // sprintf(display_str, "R: %ld", (long)Encoder_R.period_ticks);
-    // OLED_PrintString(0,48,display_str,&font16x16, OLED_COLOR_NORMAL);
-
-    // OLED_ShowFrame();
-
-  // OLED_ShowFrame();
+    // char vofa_l[12], vofa_r[12] , vofa_tagetOmega_l[12] , vofa_tagetOmega_r[12];
+    // FloatToStr(vofa_l, EncoderGetSpeed_L());
+    // FloatToStr(vofa_r, EncoderGetSpeed_R());
+    // FloatToStr(vofa_tagetOmega_l, tagetOmega);
+    // FloatToStr(vofa_tagetOmega_r, tagetOmega);
+    // printf("%s,%s,%s,%s\n", vofa_l, vofa_r, vofa_tagetOmega_l, vofa_tagetOmega_r);
     
 
     /* USER CODE END WHILE */

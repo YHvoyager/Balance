@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 // 电机初始化，在 MX_TIM2_Init() 后调用
-void Motor_Init(void);
+void APP_Motor_Init(void);
 
 // 单轮正转，占空比 0～100%
 void ForwardDuty_L(float duty);
@@ -36,6 +36,13 @@ float Get_Duty(char Wheel);
 
 // 电机测试
 void Motor_Test(KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3);
+
+void APP_Motor_Proc(void); //电机控制任务函数
+
+void APP_Motor_SetOmega_L(float omega_l);
+void APP_Motor_SetOmega_R(float omega_r);
+
+void APP_PWM_Init(void);
 
 #ifdef __cplusplus
 }

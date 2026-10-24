@@ -48,7 +48,11 @@ add_executable(${CMAKE_PROJECT_NAME}
     Core/Inc/printf.h
     Core/Src/printf.c
     Core/Src/qmath.c
-    Core/Inc/qmath.h)
+    Core/Inc/qmath.h
+    Core/Src/APP/APP_PID.c
+    Core/Inc/APP/APP_PID.h
+    Core/Src/APP/APP_Bat.c
+    Core/Inc/APP/APP_Bat.h)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)

@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include "APP_Control.h"
 #include "KEY.h"
+#include "APP_PID.h"
+#include "APP_Encoder.h"
+#include "task.h"
+#include "APP_Bat.h"
 
 // TIM2：向上计数、PWM mode 1、高电平有效
 // 默认不重映射：
@@ -18,8 +22,11 @@
 //
 // @简介:初始化电机
 //
-void Motor_Init(void)
+static PID_Typedef PID_L;  //左电机调速系统PID控制器
+static PID_Typedef PID_R;  //右电机调速系统PID控制器
+void APP_Motor_Init(void)
 {
+    
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 0);
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, 0);
@@ -182,4 +189,56 @@ void Motor_Test(KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3)
       key3->last_pressed = 0;
       key3->pressed = 0;
     }
+}
+
+//
+// @简介:电机调速系统进程函数
+//
+void APP_Motor_Proc(void){
+    PERIODIC(1); //1ms执行一次
+
+    // #1
+    //通过编码器获取左轮胎角速度
+    float omega_l = EncoderGetSpeed_L();
+    //通过编码器获取右轮胎角速度
+    float omega_r = EncoderGetSpeed_R();
+
+    // #2 计算PID控制器的输出
+    float Ua_l = PID_Compute(&PID_L, omega_l);
+    float Ua_r = PID_Compute(&PID_R, omega_r);
+
+    // #3 将电压Ua设置到电机两端
+    //获取电池电压
+    float vbat = APP_Bat_Get();
+
+    //计算左右电机PWM信号的占空比
+    float duty_l = Ua_l / vbat * 100.0f;
+    float duty_r = Ua_r / vbat * 100.0f;
+
+    //设置左右占空比
+    ForwardDuty_L(duty_l);
+    ForwardDuty_R(duty_r);
+}
+
+
+//
+// @简介:设置左轮胎角速度
+// @参数: omega_l 左轮胎角速度,单位:rad/s
+void APP_Motor_SetOmega_L(float omega_l){
+    PID_ChangeSp(&PID_L, omega_l);
+} 
+
+//
+// @简介:设置右轮胎角速度
+// @参数: omega_r 右轮胎角速度,单位:rad/s
+
+void APP_Motor_SetOmega_R(float omega_r){
+    PID_ChangeSp(&PID_R, omega_r);
+}
+
+void APP_PWM_Init(void)
+{
+    //初始化PID控制器
+    PID_Init(&PID_L, 0.5f, 7.0f, 0.0f);
+    PID_Init(&PID_R, 0.5f, 7.0f, 0.0f);
 }

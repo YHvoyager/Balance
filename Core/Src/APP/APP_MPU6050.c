@@ -2,6 +2,7 @@
 #include "i2c.h"
 #include "stdio.h"
 #include "task.h"
+#include "qmath.h"
 #include "math.h"
 
 uint8_t MPU_buffer[14];
@@ -13,7 +14,7 @@ float yaw, pitch, roll;
 float yaw_a, pitch_a, roll_a;
 float yaw_g, pitch_g, roll_g;
 static float Gx_bias, Gy_bias, Gz_bias;
-#define YAW_GYRO_ZERO_DEADBAND_DPS 0.2f
+#define YAW_GYRO_ZERO_DEADBAND_DPS 0.3f
 //yaw绕z轴旋转，pitch绕y轴旋转，roll绕x轴旋转
 //单位°
 
@@ -30,7 +31,7 @@ HAL_StatusTypeDef MPU6050_WriteByte(uint8_t reg, uint8_t value)
     );
 }
 
-void MPU6050_Init(){
+void APP_MPU6050_Init(){
     MPU6050_WriteByte(MPU6050_PWR_MGMT_1_REG, 0x00); //解除休眠模式
     //设置加速度计和陀螺仪的量程
     MPU6050_WriteByte(0x1C, 0x00); //加速度计量程2g
@@ -98,7 +99,7 @@ float MPU6050_GetGz (void){
 //
 // @brief MPU6050进程函数
 //
-void MPU6050_Proc(void){
+void APP_MPU6050_Proc(void){
 
     PERIODIC(5); //每5ms执行一次
     MPU6050_GetData();
@@ -117,8 +118,8 @@ void MPU6050_Proc(void){
     MPU6050_GetAy();
     MPU6050_GetAz();
     //计算欧拉角
-    pitch_a = -atan2(Ax, Az) * 180.0f / 3.1415927f;
-    roll_a = atan2(Ay, sqrtf(Ax * Ax + Az * Az)) * 180.0f / 3.1415927f;
+    pitch_a = -qmath_atan2(Ax, Az);
+    roll_a = qmath_atan2(Ay, sqrtf(Ax * Ax + Az * Az));
 
     //使用互补滤波器融合陀螺仪和加速度计的测量结果
     yaw = yaw_g;
