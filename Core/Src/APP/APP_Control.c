@@ -42,6 +42,18 @@ void APP_PID_SetRight(float kp, float ki, float kd){
     PID_Reset(&PID_R);
 }
 
+void APP_PID_GetLeft(float *kp, float *ki, float *kd){
+    if (kp != 0) *kp = PID_L.kp;
+    if (ki != 0) *ki = PID_L.ki;
+    if (kd != 0) *kd = PID_L.kd;
+}
+
+void APP_PID_GetRight(float *kp, float *ki, float *kd){
+    if (kp != 0) *kp = PID_R.kp;
+    if (ki != 0) *ki = PID_R.ki;
+    if (kd != 0) *kd = PID_R.kd;
+}
+
 
 //
 // @简介:初始化电机
@@ -49,8 +61,8 @@ void APP_PID_SetRight(float kp, float ki, float kd){
 void APP_Motor_Init(void)
 {
     //初始化PID控制器
-    PID_Init(&PID_L, 0.5f, 0.0f, 0.0f);
-    PID_Init(&PID_R, 0.5f, 0.0f, 0.0f);
+    PID_Init(&PID_L, 0.5f, 0.5f, 0.0f);
+    PID_Init(&PID_R, 0.5f, 0.5f, 0.0f);
     PID_LimitConfig(&PID_L, +8.4f, -8.4f);
     PID_LimitConfig(&PID_R, +8.4f, -8.4f);
 

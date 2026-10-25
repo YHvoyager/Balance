@@ -52,6 +52,9 @@ void APP_PID_SetLeft(float kp, float ki, float kd);
 
 void APP_PID_SetRight(float kp, float ki, float kd);
 
+void APP_PID_GetLeft(float *kp, float *ki, float *kd);
+void APP_PID_GetRight(float *kp, float *ki, float *kd);
+
 #ifdef __cplusplus
 }
 #endif

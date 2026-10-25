@@ -38,6 +38,7 @@
 #include "Vofa.h"
 #include "APP_Bat.h"
 #include "task.h"
+#include "ESP01S.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,9 +68,9 @@ void FloatToStr(char *out, float v)
   sprintf(out, "%d.%02d", whole, frac);   // %d 不依赖浮点printf
 }
 
-static float tagetOmega = 0.0f;
+static volatile float targetOmega = 0.0f;
 
-static uint8_t vofa_rx_byte;
+static void VOFA_SendPIDTelemetry(void);
 
 static void VOFA_PID_CommandProc(void)
 {
@@ -78,6 +79,24 @@ static void VOFA_PID_CommandProc(void)
 
   while (Vofa_GetLine(line, sizeof(line)) > 0U)
   {
+    if (strcmp(line, "get") == 0 || strcmp(line, "?") == 0)
+    {
+      /* 配置会在低频 PID 遥测中回传；get 立即触发一次回传。 */
+      VOFA_SendPIDTelemetry();
+      continue;
+    }
+
+    if (Vofa_GetFloat(line, "target", &kp))
+    {
+      if (kp >= -30.0f && kp <= 30.0f)
+      {
+        targetOmega = kp;
+        APP_Motor_SetOmega_L(kp);
+        APP_Motor_SetOmega_R(kp);
+      }
+      continue;
+    }
+
     /* 命令格式：L kp=0.5 ki=0.01 kd=0 或 R kp=... ki=... kd=... */
     if ((line[0] != 'L' && line[0] != 'R') ||
         !Vofa_GetFloat(line, "kp", &kp) ||
@@ -99,15 +118,6 @@ static void VOFA_PID_CommandProc(void)
   }
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if (huart == &huart1)
-  {
-    Vofa_FeedByte(vofa_rx_byte);
-    (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
-  }
-}
-
 static void SendData_Proc(void)
 {
   PERIODIC(10); // 100 Hz
@@ -115,12 +125,26 @@ static void SendData_Proc(void)
   float data[6] = {
     EncoderGetSpeed_L(),
     EncoderGetSpeed_R(),
-    tagetOmega,
+    targetOmega,
     APP_Bat_Get(),
     APP_Motor_GetDuty_L(),
     APP_Motor_GetDuty_R()
   };
   Vofa_Send("motor", data, 6, 2);
+}
+
+static void SendPIDData_Proc(void)
+{
+  PERIODIC(500); // 2 Hz，减少对控制主循环的阻塞
+  VOFA_SendPIDTelemetry();
+}
+
+static void VOFA_SendPIDTelemetry(void)
+{
+  float data[6];
+  APP_PID_GetLeft(&data[0], &data[1], &data[2]);
+  APP_PID_GetRight(&data[3], &data[4], &data[5]);
+  Vofa_Send("pid", data, 6, 4);
 }
 
 /* USER CODE END PV */
@@ -184,7 +208,12 @@ int main(void)
   APP_ADC_Init();
   APP_PWM_Init();
   Vofa_Init();
-  (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
+  /* ★ 串口接收只有一条路：ESP01S_Init() 开 HAL_UARTEx_ReceiveToIdle_DMA，
+     由 HAL_UARTEx_RxEventCallback 把字节喂进 Vofa_FeedByte。
+     ★ 不要再额外调 HAL_UART_Receive_IT(&huart1, ...)：
+       huart1 的接收已经被 DMA 占着，Receive_IT 只会返回 HAL_BUSY，
+       而下面那个 HAL_UART_RxCpltCallback 永远不会触发 ⇒ 一条命令也收不到。 */
+  ESP01S_Init();
 
   /* USER CODE END 2 */
 
@@ -202,11 +231,6 @@ int main(void)
 
       
 
-    tagetOmega = (HAL_GetTick() / 1000) % 10 * 2;
-
-    APP_Motor_SetOmega_L(tagetOmega);
-    APP_Motor_SetOmega_R(tagetOmega);
-
     // OLED_NewFrame();
 
     // //显示角速度
@@ -218,6 +242,7 @@ int main(void)
     // OLED_ShowFrame();
 
     SendData_Proc();
+    SendPIDData_Proc();
     
 
     /* USER CODE END WHILE */
