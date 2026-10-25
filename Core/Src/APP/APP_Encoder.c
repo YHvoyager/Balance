@@ -173,11 +173,3 @@ uint32_t micros(void)
     return Timer1_GetUs();
 }
 
-//
-// @简介: 读取TIM1计数器，单位为微秒
-// @注意: TIM1预分频72-1(1us计1次)，周期65535，返回值为16位微秒计数
-//
-uint32_t Timer1_GetUs(void)
-{
-    return __HAL_TIM_GET_COUNTER(&htim1);
-}

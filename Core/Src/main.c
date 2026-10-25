@@ -69,18 +69,58 @@ void FloatToStr(char *out, float v)
 
 static float tagetOmega = 0.0f;
 
-void SendData_Proc(void){
-    PERIODIC(10); // 每10ms发送一次数据
+static uint8_t vofa_rx_byte;
 
-    float data[1] = {APP_Bat_Get()};
-    Vofa_Send(NULL, data, 1, 2);
+static void VOFA_PID_CommandProc(void)
+{
+  char line[80];
+  float kp, ki, kd;
 
-    char vofa_l[12], vofa_r[12] , vofa_tagetOmega_l[12] , vofa_tagetOmega_r[12];
-    FloatToStr(vofa_l, EncoderGetSpeed_L());
-    FloatToStr(vofa_r, EncoderGetSpeed_R());
-    FloatToStr(vofa_tagetOmega_l, tagetOmega);
-    FloatToStr(vofa_tagetOmega_r, tagetOmega);
-    printf("%s,%s,%s,%s\n", vofa_l, vofa_r, vofa_tagetOmega_l, vofa_tagetOmega_r);
+  while (Vofa_GetLine(line, sizeof(line)) > 0U)
+  {
+    /* 命令格式：L kp=0.5 ki=0.01 kd=0 或 R kp=... ki=... kd=... */
+    if ((line[0] != 'L' && line[0] != 'R') ||
+        !Vofa_GetFloat(line, "kp", &kp) ||
+        !Vofa_GetFloat(line, "ki", &ki) ||
+        !Vofa_GetFloat(line, "kd", &kd))
+    {
+      continue;
+    }
+
+    /* 限制输入范围，错误命令不会写入 PID。 */
+    if (kp < 0.0f || kp > 1000.0f || ki < 0.0f || ki > 1000.0f ||
+        kd < 0.0f || kd > 1000.0f)
+    {
+      continue;
+    }
+
+    if (line[0] == 'L') APP_PID_SetLeft(kp, ki, kd);
+    else                APP_PID_SetRight(kp, ki, kd);
+  }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if (huart == &huart1)
+  {
+    Vofa_FeedByte(vofa_rx_byte);
+    (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
+  }
+}
+
+static void SendData_Proc(void)
+{
+  PERIODIC(10); // 100 Hz
+
+  float data[6] = {
+    EncoderGetSpeed_L(),
+    EncoderGetSpeed_R(),
+    tagetOmega,
+    APP_Bat_Get(),
+    APP_Motor_GetDuty_L(),
+    APP_Motor_GetDuty_R()
+  };
+  Vofa_Send("motor", data, 6, 2);
 }
 
 /* USER CODE END PV */
@@ -133,6 +173,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  Timer1_StartUs();
   APP_Motor_Init();
   APP_MPU6050_Init();
   HAL_Delay(100); //等待MPU6050稳定
@@ -142,6 +183,8 @@ int main(void)
   APP_Encoder_Init();
   APP_ADC_Init();
   APP_PWM_Init();
+  Vofa_Init();
+  (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
 
   /* USER CODE END 2 */
 
@@ -149,30 +192,32 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    VOFA_PID_CommandProc();
+
+    
+    KEY_Proc(&key1, &key2, &key3);
     APP_Bat_Get_Proc();
     APP_MPU6050_Proc();
     APP_Motor_Proc();
 
-    tagetOmega = (HAL_GetTick() % 1000) % 10 * 2;
+      
+
+    tagetOmega = (HAL_GetTick() / 1000) % 10 * 2;
 
     APP_Motor_SetOmega_L(tagetOmega);
     APP_Motor_SetOmega_R(tagetOmega);
 
-    float battery_voltage = APP_Bat_Get();
+    // OLED_NewFrame();
+
+    // //显示角速度
+    // FloatToStr(display_str, EncoderGetSpeed_L());
+    // OLED_PrintString(0, 0, display_str, &font16x16, 0);
+    // FloatToStr(display_str, EncoderGetSpeed_R());
+    // OLED_PrintString(0, 16, display_str, &font16x16, 0);
+
+    // OLED_ShowFrame();
 
     SendData_Proc();
-    
-    // float data[4] = {pitch, roll, yaw, battery_voltage};
-    // Vofa_Send(NULL, data, 4, 2);
-    // float data[1] = {battery_voltage};
-    // Vofa_Send(NULL, data, 1, 2);
-
-    // char vofa_l[12], vofa_r[12] , vofa_tagetOmega_l[12] , vofa_tagetOmega_r[12];
-    // FloatToStr(vofa_l, EncoderGetSpeed_L());
-    // FloatToStr(vofa_r, EncoderGetSpeed_R());
-    // FloatToStr(vofa_tagetOmega_l, tagetOmega);
-    // FloatToStr(vofa_tagetOmega_r, tagetOmega);
-    // printf("%s,%s,%s,%s\n", vofa_l, vofa_r, vofa_tagetOmega_l, vofa_tagetOmega_r);
     
 
     /* USER CODE END WHILE */

@@ -35,17 +35,26 @@ void Back(uint16_t L_duty, uint16_t R_duty);
 float Get_Duty(char Wheel);
 
 // 电机测试
-void Motor_Test(KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3);
+void Motor_Test(KEY_HandleTypeDef *key1, KEY_HandleTypeDef *key2, KEY_HandleTypeDef *key3);
 
 void APP_Motor_Proc(void); //电机控制任务函数
 
 void APP_Motor_SetOmega_L(float omega_l);
 void APP_Motor_SetOmega_R(float omega_r);
+float APP_Motor_GetDuty_L(void);
+float APP_Motor_GetDuty_R(void);
 
 void APP_PWM_Init(void);
+void APP_PWM_Cmd(uint8_t on);
+uint8_t APP_Motor_Cmd(uint8_t on);
+
+void APP_PID_SetLeft(float kp, float ki, float kd);
+
+void APP_PID_SetRight(float kp, float ki, float kd);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* APP_CONTROL_H */
+    

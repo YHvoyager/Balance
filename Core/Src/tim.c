@@ -27,6 +27,8 @@
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
+static volatile uint32_t tim1_overflows = 0u;
+
 /* TIM1 init function */
 void MX_TIM1_Init(void)
 {
@@ -67,6 +69,41 @@ void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
 
+}
+
+void Timer1_StartUs(void)
+{
+  tim1_overflows = 0u;
+  __HAL_TIM_SET_COUNTER(&htim1, 0u);
+  HAL_TIM_Base_Start_IT(&htim1);
+}
+
+/* TIM1 runs at 1 MHz and wraps every 65536 us. Extend it to 32 bits. */
+uint32_t Timer1_GetUs(void)
+{
+  uint32_t primask = __get_PRIMASK();
+  uint32_t high;
+  uint16_t low;
+
+  __disable_irq();
+  high = tim1_overflows;
+  low = (uint16_t)__HAL_TIM_GET_COUNTER(&htim1);
+
+  /* Account for a wrap whose interrupt has not been serviced yet. */
+  if (__HAL_TIM_GET_FLAG(&htim1, TIM_FLAG_UPDATE) != RESET) {
+    high++;
+    low = (uint16_t)__HAL_TIM_GET_COUNTER(&htim1);
+  }
+
+  __set_PRIMASK(primask);
+  return (high << 16) | low;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM1) {
+    tim1_overflows++;
+  }
 }
 /* TIM2 init function */
 void MX_TIM2_Init(void)

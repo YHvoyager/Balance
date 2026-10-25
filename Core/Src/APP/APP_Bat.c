@@ -5,7 +5,9 @@
 #define ADC_VREF        3.3f
 #define ADC_MAX         4095.0f
 #define DIVIDER_RATIO   2.733f
-#define ADC_CALIBRATION 1.0237f
+// 一点校准：当前显示 7.68 V、万用表实测 7.57 V，修正系数为
+// 1.0237 * (7.57 / 7.68) = 1.009038。
+#define ADC_CALIBRATION 1.00904f
 
 static float battery_voltage = 7.4f;
 

@@ -12,7 +12,7 @@ typedef struct
     volatile uint8_t irq_flag;
     uint32_t irq_tick;
 
-    uint8_t pressed;
+    uint8_t pressed;  //当前是否按下
     uint8_t last_pressed;
 } KEY_HandleTypeDef;
 
@@ -31,5 +31,6 @@ void KEY_Update(KEY_HandleTypeDef *key);
 uint8_t KEY_WasPressed(KEY_HandleTypeDef *key);
 uint8_t KEY_IsPressed(KEY_HandleTypeDef *key);
 void KEY_AllInit(void);
+void KEY_Proc(KEY_HandleTypeDef* key1, KEY_HandleTypeDef* key2, KEY_HandleTypeDef* key3);
 
 #endif

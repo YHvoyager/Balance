@@ -16,6 +16,18 @@ void PID_Init(PID_Typedef *pid,float kp,float ki,float kd){
     pid->t_k_l = 0;
     pid->err_k_l = 0.0f;
     pid->err_int_k_l = 0.0f;
+
+    pid->UpperLimit = +8.4f;
+    pid->LowerLimit = -8.4f;
+}
+
+//
+// @简介：设置PID控制器的上限和下限
+// @参数： UpperLimit 上限
+// @参数： LowerLimit 下限
+void PID_LimitConfig(PID_Typedef *pid,float UpperLimit,float LowerLimit){
+    pid->UpperLimit = UpperLimit;
+    pid->LowerLimit = LowerLimit;
 }
 
 //
@@ -34,8 +46,18 @@ float PID_Compute(PID_Typedef *pid,float fb){
 
     uint64_t t_k = micros();
     float deltaT = (float)(t_k - pid->t_k_l) * 1.0e-6f;
-    float err_dev = (err - pid->err_k_l) / deltaT;
-    float err_int = pid->err_int_k_l + (err + pid->err_k_l) * deltaT * 0.5f;
+
+    float err_dev = 0.0f;
+    float err_int = 0.0f;
+
+    if(pid->t_k_l != 0){
+    err_dev = (err - pid->err_k_l) / deltaT;
+    err_int = pid->err_int_k_l + (err + pid->err_k_l) * deltaT * 0.5f;}
+
+    //积分限幅
+    if(err_int > pid->UpperLimit) err_int = pid->UpperLimit;
+    if(err_int < pid->LowerLimit) err_int = pid->LowerLimit;
+
     
     float CO_p = pid->kp * err;
     float CO_i = pid->ki * err_int;
@@ -47,5 +69,24 @@ float PID_Compute(PID_Typedef *pid,float fb){
     pid->err_k_l = err;
     pid->err_int_k_l = err_int;
 
+
+    //限制PID值在上限和下限之间
+    if(CO >= pid->UpperLimit){
+        CO = pid->UpperLimit;
+    }
+    if(CO <= pid->LowerLimit){
+        CO = pid->LowerLimit;
+    }
+
+
     return CO;
+}
+
+//
+// @简介：对PID控制器进行复位，防止再次开机时积分项累加
+// @参数： pid PID控制器指针
+void PID_Reset(PID_Typedef *pid){
+    pid->err_int_k_l = 0.0f;
+    pid->err_k_l = 0.0f;
+    pid->t_k_l = 0;
 }
