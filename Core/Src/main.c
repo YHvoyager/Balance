@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "APP_Control.h"
+#include "APP_Motor_Control.h"
 #include "APP_MPU6050.h"
 #include "oled.h"
 #include <string.h>
@@ -38,6 +38,7 @@
 #include "Vofa.h"
 #include "APP_Bat.h"
 #include "task.h"
+#include "APP_Control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +48,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,45 +68,6 @@ void FloatToStr(char *out, float v)
 }
 
 static float tagetOmega = 0.0f;
-
-static uint8_t vofa_rx_byte;
-
-static void VOFA_PID_CommandProc(void)
-{
-  char line[80];
-  float kp, ki, kd;
-
-  while (Vofa_GetLine(line, sizeof(line)) > 0U)
-  {
-    /* 命令格式：L kp=0.5 ki=0.01 kd=0 或 R kp=... ki=... kd=... */
-    if ((line[0] != 'L' && line[0] != 'R') ||
-        !Vofa_GetFloat(line, "kp", &kp) ||
-        !Vofa_GetFloat(line, "ki", &ki) ||
-        !Vofa_GetFloat(line, "kd", &kd))
-    {
-      continue;
-    }
-
-    /* 限制输入范围，错误命令不会写入 PID。 */
-    if (kp < 0.0f || kp > 1000.0f || ki < 0.0f || ki > 1000.0f ||
-        kd < 0.0f || kd > 1000.0f)
-    {
-      continue;
-    }
-
-    if (line[0] == 'L') APP_PID_SetLeft(kp, ki, kd);
-    else                APP_PID_SetRight(kp, ki, kd);
-  }
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if (huart == &huart1)
-  {
-    Vofa_FeedByte(vofa_rx_byte);
-    (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
-  }
-}
 
 static void SendData_Proc(void)
 {
@@ -183,8 +144,7 @@ int main(void)
   APP_Encoder_Init();
   APP_ADC_Init();
   APP_PWM_Init();
-  Vofa_Init();
-  (void)HAL_UART_Receive_IT(&huart1, &vofa_rx_byte, 1U);
+  APP_Control_Init(); 
 
   /* USER CODE END 2 */
 
@@ -192,20 +152,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    VOFA_PID_CommandProc();
-
-    
     KEY_Proc(&key1, &key2, &key3);
     APP_Bat_Get_Proc();
     APP_MPU6050_Proc();
     APP_Motor_Proc();
-
-      
-
-    tagetOmega = (HAL_GetTick() / 1000) % 10 * 2;
-
-    APP_Motor_SetOmega_L(tagetOmega);
-    APP_Motor_SetOmega_R(tagetOmega);
+    APP_Control_Proc();
 
     // OLED_NewFrame();
 

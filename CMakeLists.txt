@@ -28,6 +28,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
+# Optional VOFA+ wireless PID command module (disabled by default).
+option(ENABLE_REMOTE_PID_TUNING "Build the VOFA+ wireless PID tuning module" OFF)
+
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
 
@@ -54,7 +57,8 @@ add_executable(${CMAKE_PROJECT_NAME}
     Core/Src/APP/APP_Bat.c
     Core/Inc/APP/APP_Bat.h
     Core/Src/APP/APP_PWM.c
-    Core/Inc/APP/APP_PWM.h)
+    Core/Inc/APP/APP_PWM.h
+    Core/Inc/APP/APP_Control.h)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -67,6 +71,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/APP_Motor_Control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/APP_Control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/oled.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/font.c
@@ -74,6 +79,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/Vofa.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ESP01S.c
 )
+
+if(ENABLE_REMOTE_PID_TUNING)
+    target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/APP/APP_RemotePID.c
+    )
+endif()
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

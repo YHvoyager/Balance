@@ -128,3 +128,23 @@ void APP_MPU6050_Proc(void){
     pitch = 0.95238 * pitch + 0.04762 * pitch_a;
     roll = 0.95238 * roll + 0.04762 * roll_a;
    }
+
+float APP_MPU6050_GetYaw(void){
+    return yaw;
+}
+
+float APP_MPU6050_GetPitch(void){
+    return pitch;
+}
+    
+float APP_MPU6050_GetRoll(void){
+    return roll;
+}
+
+float APP_MPU6050_GetGy(void){
+    return Gy;
+}
+
+float APP_MPU6050_GetGyBias(void){
+    return Gy_bias;
+}

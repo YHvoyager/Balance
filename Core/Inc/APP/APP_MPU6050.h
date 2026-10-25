@@ -20,5 +20,10 @@ float MPU6050_GetTemperature(void);
 float MPU6050_GetGx(void);
 float MPU6050_GetGy(void);
 float MPU6050_GetGz(void);
+float APP_MPU6050_GetYaw(void);
+float APP_MPU6050_GetPitch(void);
+float APP_MPU6050_GetRoll(void);
+float APP_MPU6050_GetGy(void);
+float APP_MPU6050_GetGyBias(void);
 
 #endif
