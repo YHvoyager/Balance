@@ -39,6 +39,7 @@
 #include "APP_Bat.h"
 #include "task.h"
 #include "APP_Control.h"
+#include "APP_RemotePID.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,17 +72,20 @@ static float tagetOmega = 0.0f;
 
 static void SendData_Proc(void)
 {
-  PERIODIC(10); // 100 Hz
+  PERIODIC(20); // 50 Hz, DMA transmit keeps the control loop unblocked
 
-  float data[6] = {
+  APP_ControlTelemetry control;
+  APP_Control_GetTelemetry(&control);
+  float data[7] = {
+    control.pitch_deg,
+    control.gyro_dps,
+    control.theta_dot_ref,
+    control.theta_dot_dot_ref,
+    control.omega_ref,
     EncoderGetSpeed_L(),
-    EncoderGetSpeed_R(),
-    tagetOmega,
-    APP_Bat_Get(),
-    APP_Motor_GetDuty_L(),
-    APP_Motor_GetDuty_R()
+    EncoderGetSpeed_R()
   };
-  Vofa_Send("motor", data, 6, 2);
+  (void)Vofa_SendAsync("bal", data, 7, 2);
 }
 
 /* USER CODE END PV */
@@ -145,6 +149,7 @@ int main(void)
   APP_ADC_Init();
   APP_PWM_Init();
   APP_Control_Init(); 
+  APP_RemotePID_Init();
 
   /* USER CODE END 2 */
 
@@ -157,6 +162,7 @@ int main(void)
     APP_MPU6050_Proc();
     APP_Motor_Proc();
     APP_Control_Proc();
+    APP_RemotePID_Proc();
 
     // OLED_NewFrame();
 

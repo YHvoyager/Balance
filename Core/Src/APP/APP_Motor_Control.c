@@ -49,8 +49,8 @@ void APP_PID_SetRight(float kp, float ki, float kd){
 void APP_Motor_Init(void)
 {
     //初始化PID控制器
-    PID_Init(&PID_L, 0.5f, 0.5f, 0.0f);
-    PID_Init(&PID_R, 0.5f, 0.5f, 0.0f);
+    PID_Init(&PID_L, 0.5f, 0.52f, 0.0f);
+    PID_Init(&PID_R, 0.5f, 0.52f, 0.0f);
     PID_LimitConfig(&PID_L, +8.4f, -8.4f);
     PID_LimitConfig(&PID_R, +8.4f, -8.4f);
 
@@ -274,10 +274,14 @@ uint8_t APP_Motor_Cmd(uint8_t on){
     if (!motor_enabled) {
         motor_duty_l = 0.0f;
         motor_duty_r = 0.0f;
-        Brake();
+        Slide();
     }
     APP_PWM_Cmd(motor_enabled);
     PID_Reset(&PID_L);
     PID_Reset(&PID_R);
+    PID_ChangeSp(&PID_L, 0.0f);      
+    PID_ChangeSp(&PID_R, 0.0f);
     return motor_enabled;
 }
+
+uint8_t APP_Motor_IsEnabled(void) { return motor_enabled; }

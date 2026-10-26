@@ -49,8 +49,9 @@ void APP_PWM_Cmd(uint8_t on);
 uint8_t APP_Motor_Cmd(uint8_t on);
 
 void APP_PID_SetLeft(float kp, float ki, float kd);
-
 void APP_PID_SetRight(float kp, float ki, float kd);
+
+uint8_t APP_Motor_IsEnabled(void);
 
 #ifdef __cplusplus
 }

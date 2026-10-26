@@ -87,6 +87,9 @@ uint16_t Vofa_GetLine(char *out, uint16_t max);
   */
 uint16_t Vofa_Send(const char *name, const float *data, uint8_t n, uint8_t dec);
 
+/** Start a DMA-backed FireWater send when USART1 is idle; returns 0 if busy. */
+uint16_t Vofa_SendAsync(const char *name, const float *data, uint8_t n, uint8_t dec);
+
 /**
   * @brief  把一个 float 写成十进制字符串。
   * @param  dst 输出缓冲（★ 末尾【不会】补 '\0'）

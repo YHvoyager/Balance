@@ -80,6 +80,7 @@
 
 #include "Vofa.h"
 #include "usart.h"
+#include "dma.h"
 #include <string.h>
 
 /* ============================================================ 内部状态 */
@@ -289,6 +290,45 @@ uint16_t Vofa_Send(const char *name, const float *data, uint8_t n, uint8_t dec)
      */
     (void)HAL_UART_Transmit(&huart1, (uint8_t *)buf, len, 20u);
 
+    return len;
+}
+
+uint16_t Vofa_SendAsync(const char *name, const float *data, uint8_t n, uint8_t dec)
+{
+    static uint8_t tx_buf[VOFA_LINE_MAX];
+    char value_buf[20];
+    uint8_t irq_state;
+    uint16_t len = 0;
+    uint16_t value_len;
+    uint8_t i;
+
+    if (data == NULL || n == 0u || huart1.gState != HAL_UART_STATE_READY) return 0u;
+    irq_state = __get_PRIMASK();
+
+    if (name != NULL) {
+        while (*name != '\0' && len < 16u) tx_buf[len++] = (uint8_t)*name++;
+        if (len < (VOFA_LINE_MAX - 1u)) tx_buf[len++] = ':';
+    }
+
+    for (i = 0u; i < n; i++) {
+        value_len = Vofa_Ftoa(value_buf, data[i], dec);
+        if ((uint16_t)(len + value_len + (i > 0u ? 1u : 0u) + 1u) > VOFA_LINE_MAX) break;
+        if (i > 0u) tx_buf[len++] = ',';
+        memcpy(&tx_buf[len], value_buf, value_len);
+        len = (uint16_t)(len + value_len);
+    }
+    tx_buf[len++] = '\n';
+
+    __disable_irq();
+    if (huart1.gState != HAL_UART_STATE_READY) {
+        if (irq_state == 0u) __enable_irq();
+        return 0u;
+    }
+    if (HAL_UART_Transmit_DMA(&huart1, tx_buf, len) != HAL_OK) {
+        if (irq_state == 0u) __enable_irq();
+        return 0u;
+    }
+    if (irq_state == 0u) __enable_irq();
     return len;
 }
 
