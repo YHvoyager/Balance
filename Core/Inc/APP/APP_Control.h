@@ -7,6 +7,8 @@ typedef struct {
     float theta_dot_ref;
     float theta_dot_dot_ref;
     float omega_ref;
+    float x_est_m;      /* 位置环：车身位移估计，单位 m */
+    float v_est_mps;    /* 位置环：车身速度估计，单位 m/s */
 } APP_ControlTelemetry;
 
 void APP_Control_Init(void);
