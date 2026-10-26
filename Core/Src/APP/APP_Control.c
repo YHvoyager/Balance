@@ -3,7 +3,6 @@
 #include "task.h"
 #include "APP_MPU6050.h"
 #include "qmath.h"
-#include <math.h>
 #include "APP_Encoder.h"
 #include "APP_Motor_Control.h"
 
@@ -18,39 +17,6 @@ static uint64_t last_time = 0; //上一次执行时间,单位：微秒
 static const float lp = 0.094f; //平衡车轮胎中心到MPU6050中心的距离,单位：m
 static const float g = 9.8f; //重力加速度,单位：m/s^2
 static const float rw = 0.024f; //平衡车轮胎半径,单位：m
-
-/* ---------------------------------------------------------------------------
- * 安全限幅 + 位置环
- *
- * 【为什么加位置环】
- * 原来的 omega_ref 是纯积分：omega_ref += (1/rw)*∫x_dd dt，没有任何东西告诉
- * 车"你已经跑多远了"。前倾时 x_dd 变大 -> omega_ref 一路累积 -> 车全速冲出去，
- * 冲过头之后又没有回拉机制，所以表现为"突然超快加速然后往前倒"。
- * 推导：闭环特征根有两个，快根约 -350，慢根约 +1.9~+2.3（正根=发散）。
- * 慢根才是"只能站 10 秒"的元凶，而且加大 A/G 增益也压不下去它。
- *
- * 【做法】给 x_dd 叠一个位置弹簧，把纯积分器变成带位置反馈的二阶系统：
- *   x_dd += -POS_KP*x_est - POS_VDAMP*v_est
- * 位置只能靠轮速积分估计（编码器只有速度，没有位置计数）：
- *   v   = sgn(ω_ref) * |ω| * rw          <- 用方向指令定符号，停稳时 v 直接归零
- *   v_est 低通；x_est = ∫v_est dt
- *
- * ★ 位置环只是"叠加偏移量"，不是"覆盖" x_dd，所以即使 x_est 漂了，
- *   失效模式也只是"回原点偏一点"，theta/theta_dot 两级照旧工作。
- * ★ 关掉位置环：把 POS_KP 设成 0.0f 即可恢复原行为。
- * ★ 单独验证位置环：发 A kp=0 / G kp=0，手推车看是否弹回原点；
- *   若往一个方向一直跑，说明 POS_KP 符号反了，取负。
- * ------------------------------------------------------------------------ */
-#define OMEGA_REF_MAX     20.0f   /* rad/s，ω_ref 上限 */
-#define XDD_MAX            4.0f   /* m/s^2，逆解算输出上限 */
-#define POS_KP             1.5f   /* 1/s^2，位置刚度 */
-#define POS_VDAMP          2.0f   /* 1/s，速度阻尼，抑制回原点过冲 */
-#define POS_X_MAX          0.10f  /* m，位置修正上限 */
-#define POS_V_TAU          0.010f /* s，轮速低通时间常数 */
-#define WHEEL_SPEED_MAX   50.0f   /* rad/s，编码器异常值保护 */
-
-static float x_est = 0.0f;   //车身位移估计，单位：m
-static float v_est = 0.0f;   //车身速度估计，单位：m/s（已低通）
 
 static uint8_t ctrl_prev_en = 0;    
 
@@ -99,8 +65,6 @@ void APP_Control_Proc(void){
 
     if (!en) {                       // 关机：清零，绝不累积 
         omega_ref = 0.0f;
-        x_est = 0.0f;
-        v_est = 0.0f;
         last_time = micros();
         PID_Reset(&pid_theta);
         PID_Reset(&pid_theta_dot);
@@ -111,8 +75,6 @@ void APP_Control_Proc(void){
     }
     if (!ctrl_prev_en) {             // 使能上升沿：再复位一次，这一拍只复位不输出
         omega_ref = 0.0f;
-        x_est = 0.0f;                // 位置环从原点开始
-        v_est = 0.0f;
         last_time = micros();
         PID_Reset(&pid_theta);
         PID_Reset(&pid_theta_dot);
@@ -150,37 +112,10 @@ void APP_Control_Proc(void){
     // #6.倒立摆的逆解算
     float x_dot_dot_ref = (g * qsin(temp) - theta_dot_dot_ref * lp) / qcos(temp); //单位：m/s^2
 
-    /* #6b.位置环：把 omega_ref 的无界积分器包成带位置反馈的二阶系统。
-     *     方向用 omega_ref 的符号（车轮速度环稳态精确），大小用实测轮速。 */
-    float wl = EncoderGetSpeed_L();
-    float wr = EncoderGetSpeed_R();
-    if (wl >  WHEEL_SPEED_MAX) wl =  WHEEL_SPEED_MAX;
-    if (wl < -WHEEL_SPEED_MAX) wl = -WHEEL_SPEED_MAX;
-    if (wr >  WHEEL_SPEED_MAX) wr =  WHEEL_SPEED_MAX;
-    if (wr < -WHEEL_SPEED_MAX) wr = -WHEEL_SPEED_MAX;
-
-    float w_meas = 0.5f * (wl + wr);                    // rad/s
-    float w_sign = (omega_ref >= 0.0f) ? 1.0f : -1.0f;
-    float v_now  = w_sign * fabsf(w_meas) * rw;         // m/s
-
-    // 一阶低通：T=(tau*dt)/(tau+dt)，稳定且不用 expf
-    float v_alpha = POS_V_TAU / (POS_V_TAU + deltaT);
-    v_est += v_alpha * (v_now - v_est);
-    x_est += v_est * deltaT;
-
-    float pos_corr = -(POS_KP * x_est + POS_VDAMP * v_est);   // m/s^2
-    if (pos_corr >  POS_X_MAX * POS_KP) pos_corr =  POS_X_MAX * POS_KP;
-    if (pos_corr < -POS_X_MAX * POS_KP) pos_corr = -POS_X_MAX * POS_KP;
-    x_dot_dot_ref += pos_corr;
-
-    if (x_dot_dot_ref >  XDD_MAX) x_dot_dot_ref =  XDD_MAX;
-    if (x_dot_dot_ref < -XDD_MAX) x_dot_dot_ref = -XDD_MAX;
 
     // #7.计算轮胎转速
     omega_ref += 1.0f / rw * x_dot_dot_ref * deltaT; //单位：rad/s
-    if (omega_ref >  OMEGA_REF_MAX) omega_ref =  OMEGA_REF_MAX;
-    if (omega_ref < -OMEGA_REF_MAX) omega_ref = -OMEGA_REF_MAX;
-
+    
 
     // #9.设置电机转速
     APP_Motor_SetOmega_L(omega_ref);
@@ -191,8 +126,6 @@ void APP_Control_Proc(void){
     control_telemetry.theta_dot_ref = theta_dot_ref;
     control_telemetry.theta_dot_dot_ref = theta_dot_dot_ref;
     control_telemetry.omega_ref = omega_ref;
-    control_telemetry.x_est_m = x_est;
-    control_telemetry.v_est_mps = v_est;
 
     last_time = now;
 }
