@@ -31,9 +31,9 @@ void APP_Control_Init(void){
     PID_LimitConfig(&pid_theta, 12.57f, -12.57f); // Θ环的PID控制器输出范围为[-12.57, 12.57]
 
     PID_Init(&pid_theta_dot, 32.0f, 0.0f, 0.0f);
-    PID_LimitConfig(&pid_theta_dot, 125.7f, -125.7f); // Θ'环的PID控制器输出范围为[-125.7, 125.7]
+    PID_LimitConfig(&pid_theta_dot, 60.00f, -60.00f); // Θ'环的PID控制器输出范围为[-60, 60]
     last_time = micros();
-}
+}   
 
 void APP_Control_SetAnglePID(float kp, float ki, float kd){
     pid_theta.kp = kp;
@@ -85,7 +85,7 @@ void APP_Control_Proc(void){
     uint64_t now = micros();
     float deltaT = (now - last_time) * 1e-6f; //单位：秒
 
-    // #1.将外环的设定值SP设置为0
+    // #1.将外环的设定值SP设置为0，单位：弧度
     PID_ChangeSp(&pid_theta, 0);
 
     // #2.读取传感器数据

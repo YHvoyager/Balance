@@ -36,6 +36,7 @@ void APP_MPU6050_Init(){
     //设置加速度计和陀螺仪的量程
     MPU6050_WriteByte(0x1C, 0x00); //加速度计量程2g
     MPU6050_WriteByte(0x1B, 0x00); //陀螺仪量程±250°/s
+    MPU6050_WriteByte(0x1A, 0x02); 
     HAL_Delay(100);
     Gx_bias = Gy_bias = Gz_bias = 0.0f;
     for (uint16_t i = 0; i < 200; i++) {
