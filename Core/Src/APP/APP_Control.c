@@ -110,7 +110,7 @@ void APP_Control_Proc(void){
     float theta_dot_dot_ref = PID_Compute(&pid_theta_dot, theta_dot);
 
     // #6.倒立摆的逆解算
-    float x_dot_dot_ref = (g * qsin(temp) - theta_dot_dot_ref * lp) / qcos(temp); //单位：m/s^2
+    float x_dot_dot_ref = (g * qsin(theta) - theta_dot_dot_ref * lp) / qcos(theta); //单位：m/s^2
 
 
     // #7.计算轮胎转速
