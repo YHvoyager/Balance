@@ -24,7 +24,9 @@ static uint8_t ctrl_prev_en = 0;
 // @简介：初始化平衡车控制系统
 // 
 void APP_Control_Init(void){
-    PID_Init(&pid_velocity, 1.0f, 0.0f, 0.0f);
+    PID_Init(&pid_velocity, 0.0f, 0.0f, 0.0f); //初始化速度环的PID
+    PID_LimitConfig(&pid_velocity, +0.5*g, -0.5*g); // 速度环的PID控制器输出范围为[-5*g, 5*g]
+
 
 
     PID_Init(&pid_theta, 10.0f, 0.0f, 0.0f);
@@ -85,8 +87,11 @@ void APP_Control_Proc(void){
     uint64_t now = micros();
     float deltaT = (now - last_time) * 1e-6f; //单位：秒
 
-    // #1.将外环的设定值SP设置为0，单位：弧度
-    PID_ChangeSp(&pid_theta, 0);
+    //  # -1.改变速度环设定值
+    PID_ChangeSp(&pid_velocity, 0);
+
+    // # -2.读取传感器的值
+    float omega = 0.5 * (EncoderGetSpeed_L() + EncoderGetSpeed_R()); //单位：rad/s
 
     // #2.读取传感器数据
     float theta = APP_MPU6050_GetPitch() * 0.0174533f; //单位：弧度
@@ -99,6 +104,19 @@ void APP_Control_Proc(void){
 
 
     float theta_dot = (APP_MPU6050_GetGy() - APP_MPU6050_GetGyBias()) * 0.0174533f; //单位：弧度/秒
+
+    // # -3.计算速度环的反馈值
+    float omega2 = -theta_dot * (lp + rw); // //单位：rad/s
+    float omega1 = omega - omega2; //单位：rad/s
+    float x_dot = omega1 * rw; //单位：m/s
+
+    // # -4.执行速度环PID运算
+    float theta_ref = qtan(PID_Compute(&pid_velocity, x_dot) / g);
+
+    // #1.将外环的设定值SP设置为0，单位：弧度
+    PID_ChangeSp(&pid_theta, theta_ref);
+
+
 
     // #3.计算外环PID输出
     float theta_dot_ref = PID_Compute(&pid_theta, theta);
