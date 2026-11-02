@@ -37,10 +37,3 @@ balance\main.o: ../Core/Inc/i2c.h
 balance\main.o: ../Core/Inc/tim.h
 balance\main.o: ../Core/Inc/usart.h
 balance\main.o: ../Core/Inc/gpio.h
-balance\main.o: ../Core/Inc/APP_Control.h
-balance\main.o: ../Core/Inc/APP_MPU6050.h
-balance\main.o: ../Core/Inc/oled.h
-balance\main.o: ../Core/Inc/font.h
-balance\main.o: D:\Keil5 C51\ARM\ARMCC\Bin\..\include\string.h
-balance\main.o: D:\Keil5 C51\ARM\ARMCC\Bin\..\include\stdio.h
-balance\main.o: ../Core/Inc/KEY.h

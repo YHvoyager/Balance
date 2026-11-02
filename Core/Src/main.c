@@ -76,16 +76,22 @@ static void SendData_Proc(void)
 
   APP_ControlTelemetry control;
   APP_Control_GetTelemetry(&control);
-  float data[7] = {
-    control.pitch_deg,
-    control.gyro_dps,
-    control.theta_dot_ref,
-    control.theta_dot_dot_ref,
-    control.omega_ref,
-    EncoderGetSpeed_L(),
-    EncoderGetSpeed_R()
+  // ★ 电机未使能时也照常发送：MPU 的姿态/角速度/零偏永远是最新的，
+  //   标定和查漂移的时候不需要按 key1 上电（原来 telemetry 只在使能分支里更新，
+  //   没使能时发出去的是全 0，看起来像"没有 MPU 数据"）。
+  float data[10] = {
+    control.pitch_deg,          // 0 融合 pitch（°）
+    control.gyro_dps,           // 1 去零偏陀螺（°/s）
+    control.theta_dot_ref,      // 2 内环设定值
+    control.theta_dot_dot_ref,  // 3 内环输出
+    control.omega_ref,          // 4 轮速设定值 rad/s
+    EncoderGetSpeed_L(),        // 5 左轮 rad/s
+    EncoderGetSpeed_R(),        // 6 右轮 rad/s
+    control.pitch_acc_deg,      // 7 加速度计单独解算的 pitch（°）
+    control.gyro_bias_dps,      // 8 当前陀螺零偏（°/s）
+    (float)control.motor_en     // 9 电机使能状态
   };
-  (void)Vofa_SendAsync("bal", data, 7, 2);
+  (void)Vofa_SendAsync("bal", data, 10, 2);
 }
 
 /* USER CODE END PV */
@@ -141,7 +147,7 @@ int main(void)
   Timer1_StartUs();
   APP_Motor_Init();
   APP_MPU6050_Init();
-  HAL_Delay(100); //等待MPU6050稳定
+  HAL_Delay(1000); //等待MPU6050稳定
   OLED_Init();
   char display_str[20];
   KEY_AllInit();

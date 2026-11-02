@@ -149,3 +149,7 @@ float APP_MPU6050_GetGy(void){
 float APP_MPU6050_GetGyBias(void){
     return Gy_bias;
 }
+
+float APP_MPU6050_GetPitchAcc(void){
+    return pitch_a;
+}

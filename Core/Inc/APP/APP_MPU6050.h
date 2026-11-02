@@ -25,5 +25,6 @@ float APP_MPU6050_GetPitch(void);
 float APP_MPU6050_GetRoll(void);
 float APP_MPU6050_GetGy(void);
 float APP_MPU6050_GetGyBias(void);
+float APP_MPU6050_GetPitchAcc(void);   // 加速度计单独解算的 pitch（未融合），单位°
 
 #endif
