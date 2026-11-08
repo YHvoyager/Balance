@@ -15,7 +15,7 @@ static APP_ControlTelemetry control_telemetry;
 static float omega_ref = 0.0f; //平衡车轮胎转速,单位：rad/s
 static uint64_t last_time = 0; //上一次执行时间,单位：微秒
 
-static const float lp = 0.100f; //平衡车轮胎中心到MPU6050中心的距离,单位：m
+static const float lp = 0.070f; //平衡车轮胎中心到MPU6050中心的距离,单位：m
 static const float g = 9.8f; //重力加速度,单位：m/s^2
 static const float rw = 0.024f; //平衡车轮胎半径,单位：m
 
@@ -81,6 +81,7 @@ void APP_Control_Proc(void){
     if (!en) {                       // 关机：清零，绝不累积
         omega_ref = 0.0f;
         last_time = micros();
+        PID_Reset(&pid_velocity);
         PID_Reset(&pid_theta);
         PID_Reset(&pid_theta_dot);
         APP_Motor_SetOmega_L(0.0f);
@@ -97,6 +98,7 @@ void APP_Control_Proc(void){
     if (!ctrl_prev_en) {             // 使能上升沿：再复位一次，这一拍只复位不输出
         omega_ref = 0.0f;
         last_time = micros();
+        PID_Reset(&pid_velocity);
         PID_Reset(&pid_theta);
         PID_Reset(&pid_theta_dot);
         control_telemetry.theta_dot_ref      = 0.0f;
@@ -109,8 +111,30 @@ void APP_Control_Proc(void){
     uint64_t now = micros();
     float deltaT = (now - last_time) * 1e-6f; //单位：秒
 
+        //  # -1.改变速度环设定值
+    PID_ChangeSp(&pid_velocity, 0);
+
+    // # -2.读取传感器的值
+    float omega = 0.5 * (EncoderGetSpeed_L() + EncoderGetSpeed_R()); //单位：rad/s
+
+    // #2.读取传感器数据（theta、theta_dot 已在函数开头获取）
+    float temp = theta * 57.29578f; //转换为角度
+    if (qcos(temp) < 0.5f ) {                // |θ| > 72°，已经倒了
+    omega_ref = 0.0f;
+    APP_Motor_Cmd(0);                               // 直接断电，别挣扎
+    return;
+    }
+
+    // # -3.计算速度环的反馈值
+    float omega2 = -theta_dot * (lp + rw); // //单位：rad/s
+    float omega1 = omega - omega2; //单位：rad/s
+    float x_dot = omega1 * rw; //单位：m/s
+
+    // # -4.执行速度环PID运算
+    float theta_ref = qtan(PID_Compute(&pid_velocity, x_dot) / g);
+
     // #1.将外环的机械平衡目标设为-4.0°，PID内部使用弧度
-    PID_ChangeSp(&pid_theta, -4.0f * 0.0174533f);
+    PID_ChangeSp(&pid_theta, theta_ref-4.0f * 0.0174533f);
 
     // #2.倒下检测（theta 已经是弧度；原来这里把角度值喂给 qcos() 是单位错误）
     if (fabsf(theta_deg) > 72.0f) {          // |θ| > 72°，已经倒了
@@ -136,7 +160,10 @@ void APP_Control_Proc(void){
     float x_dot_dot_ref = (g * qsin(theta) - theta_dot_dot_ref * lp) / qcos(theta); //单位：m/s^2
 
     // #7.计算轮胎转速
+    if(last_time != 0)
+    {
     omega_ref += 1.0f / rw * x_dot_dot_ref * deltaT; //单位：rad/s
+    }
 
     // #9.设置电机转速
     APP_Motor_SetOmega_L(omega_ref);
@@ -148,5 +175,3 @@ void APP_Control_Proc(void){
 
     last_time = now;
 }
-
-
