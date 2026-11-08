@@ -1,3 +1,5 @@
 build
 mx.scratch
-!.settings
+!.settings*.bak
+.workbuddy/
+app/
