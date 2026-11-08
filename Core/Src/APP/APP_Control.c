@@ -88,7 +88,7 @@ void APP_Control_Init(void){
 
     /* 转向环：输入偏航角速度误差(rad/s)，输出左右轮速差(rad/s)。
        Kp=1.0 是结构图给的初值，限幅 ±15 rad/s 防止原地甩飞。 */
-    PID_Init(&pid_turn, 1.0f, 0.0f, 0.0f);
+    PID_Init(&pid_turn, 3.0f, 0.0f, 0.0f);
     PID_LimitConfig(&pid_turn, 15.0f, -15.0f);
 
     last_time = micros();

@@ -3,4 +3,4 @@ mx.scratch
 *.bak
 !.settings*.bak
 .workbuddy/
-app/
+/app/
