@@ -14,6 +14,16 @@ float yaw, pitch, roll;
 float yaw_a, pitch_a, roll_a;
 float yaw_g, pitch_g, roll_g;
 static float Gx_bias, Gy_bias, Gz_bias;
+
+/* 去零偏、过死区后的 Z 轴角速度（度/秒）。
+ * 转向环要用它做反馈：直接用 MPU6050_GetGz() 是未减零偏的原始值，
+ * 静止时会有一个固定偏置，转向环会当成"一直在转"而持续修正。 */
+static float gz_rate_dps = 0.0f;
+
+float APP_MPU6050_GetGzRate(void)
+{
+    return gz_rate_dps;
+}
 #define YAW_GYRO_ZERO_DEADBAND_DPS 0.3f
 //yaw绕z轴旋转，pitch绕y轴旋转，roll绕x轴旋转
 //单位°
@@ -110,6 +120,7 @@ void APP_MPU6050_Proc(void){
     //通过陀螺仪的测量结果计算欧拉角
     float gz_rate = Gz - Gz_bias;
     if (fabsf(gz_rate) < YAW_GYRO_ZERO_DEADBAND_DPS) gz_rate = 0.0f;
+    gz_rate_dps = gz_rate;      /* 供转向环读取 */
     yaw_g  = yaw + gz_rate * 0.005f;
     pitch_g = pitch + (Gy - Gy_bias) * 0.005f;
     roll_g = roll + (Gx - Gx_bias) * 0.005f;

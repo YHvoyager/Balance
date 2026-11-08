@@ -79,7 +79,10 @@ static void SendData_Proc(void)
   // ★ 电机未使能时也照常发送：MPU 的姿态/角速度/零偏永远是最新的，
   //   标定和查漂移的时候不需要按 key1 上电（原来 telemetry 只在使能分支里更新，
   //   没使能时发出去的是全 0，看起来像"没有 MPU 数据"）。
-  float data[10] = {
+  float gz_rad = 0.0f, omega_diff = 0.0f;
+  APP_Control_GetTurnDebug(&gz_rad, &omega_diff);
+
+  float data[14] = {
     control.pitch_deg,          // 0 融合 pitch（°）
     control.gyro_dps,           // 1 去零偏陀螺（°/s）
     control.theta_dot_ref,      // 2 内环设定值
@@ -89,9 +92,13 @@ static void SendData_Proc(void)
     EncoderGetSpeed_R(),        // 6 右轮 rad/s
     control.pitch_acc_deg,      // 7 加速度计单独解算的 pitch（°）
     control.gyro_bias_dps,      // 8 当前陀螺零偏（°/s）
-    (float)control.motor_en     // 9 电机使能状态
+    (float)control.motor_en,    // 9 电机使能状态
+    (float)g_remote_turn,       // 10 收到的转向指令
+    (float)g_remote_move,       // 11 收到的移动指令
+    gz_rad,                     // 12 实测偏航角速度 rad/s（调试）
+    omega_diff                  // 13 转向环输出轮速差 rad/s（调试）
   };
-  (void)Vofa_SendAsync("bal", data, 10, 2);
+  (void)Vofa_SendAsync("bal", data, 14, 2);
 }
 
 /* USER CODE END PV */

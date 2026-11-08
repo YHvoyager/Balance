@@ -20,6 +20,8 @@ float MPU6050_GetTemperature(void);
 float MPU6050_GetGx(void);
 float MPU6050_GetGy(void);
 float MPU6050_GetGz(void);
+/** 去零偏、过死区后的 Z 轴角速度，单位 度/秒。转向环用它作反馈。 */
+float APP_MPU6050_GetGzRate(void);
 float APP_MPU6050_GetYaw(void);
 float APP_MPU6050_GetPitch(void);
 float APP_MPU6050_GetRoll(void);
